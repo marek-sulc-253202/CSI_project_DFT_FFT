@@ -4,7 +4,7 @@ import numpy as np
 import time  # Nová knihovna pro měření času!
 
 # Importujeme obě naše funkce ze souboru dft.py
-from algorithms import calculate_dft, calculate_fft
+from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calculate_fft_libs
 
 def main():
     print("Generuji delší signál pro testování rychlosti...")
@@ -29,14 +29,14 @@ def main():
 
     # --- MĚŘENÍ 1: NAŠE STARÁ POMALÁ DFT ---
     start_cas = time.time()
-    X_dft = calculate_dft(x)
+    X_dft = calculate_dft_libs(x)
     konec_cas = time.time()
     cas_dft = konec_cas - start_cas
     print(f"1. Naše původní DFT trvala:  {cas_dft:.4f} sekund")
 
     # --- MĚŘENÍ 2: NAŠE NOVÁ RYCHLÁ FFT ---
     start_cas = time.time()
-    X_fft = calculate_fft(x)
+    X_fft = calculate_fft_libs(x)
     konec_cas = time.time()
     cas_fft = konec_cas - start_cas
     print(f"2. Naše nová FFT trvala:     {cas_fft:.4f} sekund")
@@ -66,21 +66,28 @@ def main():
     plt.figure(figsize=(10, 8))
 
     # Graf 1: Složený signál (vykreslíme jen část, ať z toho není jednolitá čmouha)
-    plt.subplot(3, 1, 1)
+    plt.subplot(4, 1, 1)
     plt.plot(x[:200]) # Kreslíme jen prvních 200 vzorků pro přehlednost
     plt.title("Vstupní signál (prvních 200 vzorků)")
     plt.ylabel("Amplituda")
     plt.grid(True)
 
+    # Graf dft:
+    plt.subplot(4, 1, 2)
+    plt.plot(frekvence_osa[:50], [abs(hodnota) for hodnota in X_dft[:50]], color='red')
+    plt.title("Naše původní DFT (zobrazeno do 50 Hz)")
+    plt.ylabel("Velikost")
+    plt.grid(True)
+
     # Graf 2: Naše nová FFT
-    plt.subplot(3, 1, 2)
+    plt.subplot(4, 1, 3)
     plt.plot(frekvence_osa[:50], amplitudy_fft[:50], color='orange')
     plt.title("Naše vlastní rychlá FFT (zobrazeno do 50 Hz)")
     plt.ylabel("Velikost")
     plt.grid(True)
 
     # Graf 3: Numpy FFT
-    plt.subplot(3, 1, 3)
+    plt.subplot(4, 1, 4)
     plt.plot(frekvence_osa[:50], amplitudy_numpy[:50], color='green', linestyle='--')
     plt.title("Numpy FFT pro porovnání")
     plt.xlabel("Frekvence (Hz)")
