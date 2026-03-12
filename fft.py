@@ -1,5 +1,4 @@
-import math
-from mathfce import complex_exponential
+import mathfce
 
 def calculate_fft(x):
     N = len(x)
@@ -21,7 +20,7 @@ def calculate_fft(x):
     X = [0.0j] * N
     first_half = N // 2
     for k in range(first_half):
-        factor = complex_exponential(-2 * math.pi * k / N)
+        factor = mathfce.complex_exponential(-2 * mathfce.pi * k / N)
         X[k] = even[k] + factor * odd[k]
         X[k + first_half] = even[k] - factor * odd[k]
     
