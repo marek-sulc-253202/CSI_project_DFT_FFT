@@ -4,8 +4,7 @@ import numpy as np
 import time  # Nová knihovna pro měření času!
 
 # Importujeme obě naše funkce ze souboru dft.py
-from dft import calculate_dft
-from fft import calculate_fft
+from algorithms import calculate_dft, calculate_fft
 
 def main():
     print("Generuji delší signál pro testování rychlosti...")

@@ -1,4 +1,4 @@
-import mathfce
+from algorithms import mathfce
 
 def calculate_dft(x):
     N = len(x)
