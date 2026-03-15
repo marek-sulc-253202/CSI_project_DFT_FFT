@@ -4,12 +4,16 @@ from tkinter import ttk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from core import sig_gen
 
 
 # Deklarace Hlavního okna
 root = tk.Tk()
 root.title("Fourierova Transformace — Dashboard")
 root.geometry("1750x800")
+
+
+
 
 
 
@@ -28,6 +32,8 @@ separator_row1.pack(side="left", fill="y", padx=(5, 0))
 # Deklarace konteineru pro graf originální signálu a jeho zarovnání
 sig_graph = ttk.Frame(row1_container, padding=5)
 sig_graph.pack(side="left", fill="both", expand=True)
+
+
 
 
 # --- 1.1. SEKCE: Frekvence a Amplitudy ---
@@ -87,6 +93,8 @@ ttk.Checkbutton(impl_frame, text="FFT s knihovnami", variable=var_fft_lib).grid(
 ttk.Checkbutton(impl_frame, text="FFT z numpy", variable=var_fft_numpy).grid(row=2, column=1, sticky="w", pady=2)
 
 
+
+
 # --- 1.3. SEKCE: Tlačítko ---
 # Třetí horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=(5, 10))
@@ -110,6 +118,9 @@ axes_fig_sig_graph.set_ylabel("Amplituda [V]")
 # 4. Propojení Matplotlibu s Tkinterem
 canvas_sig_graph = FigureCanvasTkAgg(fig_sig_graph, master=sig_graph)
 canvas_sig_graph.get_tk_widget().pack(fill="both", expand=True)
+
+
+
 
 
 
