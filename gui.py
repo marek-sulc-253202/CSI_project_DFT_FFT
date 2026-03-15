@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 
@@ -29,7 +30,7 @@ sig_graph = ttk.Frame(row1_container, padding=5)
 sig_graph.pack(side="left", fill="both", expand=True)
 
 
-# --- 1. SEKCE: Frekvence a Amplitudy ---
+# --- 1.1. SEKCE: Frekvence a Amplitudy ---
 ttk.Label(conf_params, text="Frekvence a amplitudy složek signálu", font=("Arial", 9, "bold")).pack(side="top",pady=(5, 2))
 
 # První horizontální čára
@@ -64,7 +65,7 @@ for i in range(1, 6): # 1 až 5
     ttk.Label(inputs_frame, text="V").grid(row=i, column=4, sticky="w", padx=(0, 2), pady=2)
 
 
-# --- 2. SEKCE: Použití implementace ---
+# --- 1.2. SEKCE: Použití implementace ---
 # Druhá horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=(5, 2))
 ttk.Label(conf_params, text="Použití implementace", font=("Arial", 9)).pack(pady=2)
@@ -86,12 +87,29 @@ ttk.Checkbutton(impl_frame, text="FFT s knihovnami", variable=var_fft_lib).grid(
 ttk.Checkbutton(impl_frame, text="FFT z numpy", variable=var_fft_numpy).grid(row=2, column=1, sticky="w", pady=2)
 
 
-# --- 3. SEKCE: Tlačítko ---
+# --- 1.3. SEKCE: Tlačítko ---
 # Třetí horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=(5, 10))
 
-btn_gen = ttk.Button(conf_params, text="VYGENEROVAT SIGNÁL", style="TButton") # command=spustit_vypocet doplníš pak
+btn_gen = ttk.Button(conf_params, text="VYGENEROVAT SIGNÁL", style="TButton")
 btn_gen.pack(pady=(0, 10), ipady=2)
+
+
+# --- 2.1. SEKCE: Sig Graf ---
+fig_sig_graph = Figure(figsize=(6, 3), dpi=100)
+fig_sig_graph.subplots_adjust(left=0.08, right=0.98, top=0.9, bottom=0.15)
+# Přidání os
+axes_fig_sig_graph = fig_sig_graph.add_subplot(111)
+# 3. Nastavení "prázdného" vzhledu (zatím bez dat)
+axes_fig_sig_graph.set_xlim(0, 1)
+axes_fig_sig_graph.set_ylim(-10, 10)
+axes_fig_sig_graph.grid(True, linestyle='--', alpha=0.6)
+axes_fig_sig_graph.set_title("Průběh vygenerovaného signálu v 1 sekundě", fontsize=10)
+axes_fig_sig_graph.set_xlabel("Čas [s]")
+axes_fig_sig_graph.set_ylabel("Amplituda [V]")
+# 4. Propojení Matplotlibu s Tkinterem
+canvas_sig_graph = FigureCanvasTkAgg(fig_sig_graph, master=sig_graph)
+canvas_sig_graph.get_tk_widget().pack(fill="both", expand=True)
 
 
 
