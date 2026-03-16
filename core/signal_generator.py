@@ -1,6 +1,5 @@
 import math
 
-
 def sig_gen(F, A):
 
     # Pojistka proti prázdnému vstupu
