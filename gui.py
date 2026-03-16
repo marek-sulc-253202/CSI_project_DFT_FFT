@@ -10,7 +10,63 @@ from core import sig_gen
 # Deklarace Hlavního okna
 root = tk.Tk()
 root.title("Fourierova Transformace — Dashboard")
-root.geometry("1750x800")
+root.geometry("1500x500")
+
+
+
+
+
+
+def signal_print():
+    F_values = []
+    for f in input_F:
+        txt = f.get().strip()
+        if txt:
+            try:
+                F_values.append(float(txt))
+            except ValueError:
+                continue
+                
+    A_values = []
+    for a in input_A:
+        txt = a.get().strip()
+        if txt:
+            try:
+                A_values.append(float(txt))
+            except ValueError:
+                continue
+
+    # # (Tady proběhne to čtení z políček jako minule...)
+    # for entry_f, entry_a in zip(input_F, input_A):
+    #     text_f = entry_f.get().strip()
+    #     text_a = entry_a.get().strip()
+    #     if text_f and text_a:
+    #         try:
+    #             F_hodnoty.append(float(text_f))
+    #             A_hodnoty.append(float(text_a))
+    #         except ValueError:
+    #             pass
+
+    # if not F_hodnoty or not A_hodnoty:
+    #     return
+
+    # 1. Tady zavoláme TVOJI funkci a získáme jen to pole x
+    X, t = sig_gen(F_values, A_values)
+    N = len(X)
+    T = [n / N for n in range(N)]
+
+    # 3) Aktualizovat graf signálu
+    axes_fig_sig_graph.clear()
+    axes_fig_sig_graph.plot(t, X, color='#1f77b4', linewidth=1)
+    freq_str = ", ".join([str(int(f)) if float(f).is_integer() else f"{f:.2f}" for f in F_values])
+    axes_fig_sig_graph.set_title(f"Generovaný signál — frekvence: {freq_str} Hz", fontsize=11)
+    axes_fig_sig_graph.set_xlim(0, 1)
+    axes_fig_sig_graph.set_ylabel('Amplitude')
+    # Dynamicky nastavit y-lim podle amplitudy složeného signálu
+    max_amp = max(abs(v) for v in X) if X else 1.0
+    axes_fig_sig_graph.set_ylim(-max(1.1, max_amp * 1.2), max(1.1, max_amp * 1.2))
+    axes_fig_sig_graph.grid(True, alpha=0.3)
+    canvas_sig_graph.draw_idle()
 
 
 
@@ -47,8 +103,8 @@ inputs_frame = ttk.Frame(conf_params)
 inputs_frame.pack(pady=5)
 
 # Seznamy, pro uložení hodnot ze vstupů
-vstupy_frekvence = []
-vstupy_amplitudy = []
+input_F = []
+input_A = []
 
 for i in range(1, 6): # 1 až 5
     # Číslo řádku
@@ -57,7 +113,7 @@ for i in range(1, 6): # 1 až 5
     # Vstup pro frekvenci
     entry_f = ttk.Entry(inputs_frame, width=6)
     entry_f.grid(row=i, column=1, padx=2, pady=2)
-    vstupy_frekvence.append(entry_f)
+    input_F.append(entry_f)
     
     # Jednotka Hz
     ttk.Label(inputs_frame, text="Hz").grid(row=i, column=2, sticky="w", padx=(0, 10), pady=2)
@@ -65,7 +121,7 @@ for i in range(1, 6): # 1 až 5
     # Vstup pro amplitudu
     entry_a = ttk.Entry(inputs_frame, width=6)
     entry_a.grid(row=i, column=3, padx=2, pady=2)
-    vstupy_amplitudy.append(entry_a)
+    input_A.append(entry_a)
     
     # Jednotka V
     ttk.Label(inputs_frame, text="V").grid(row=i, column=4, sticky="w", padx=(0, 2), pady=2)
@@ -99,7 +155,7 @@ ttk.Checkbutton(impl_frame, text="FFT z numpy", variable=var_fft_numpy).grid(row
 # Třetí horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=(5, 10))
 
-btn_gen = ttk.Button(conf_params, text="VYGENEROVAT SIGNÁL", style="TButton")
+btn_gen = ttk.Button(conf_params, text="VYGENEROVAT SIGNÁL", command=signal_print, style="TButton")
 btn_gen.pack(pady=(0, 10), ipady=2)
 
 
@@ -112,7 +168,7 @@ axes_fig_sig_graph = fig_sig_graph.add_subplot(111)
 axes_fig_sig_graph.set_xlim(0, 1)
 axes_fig_sig_graph.set_ylim(-10, 10)
 axes_fig_sig_graph.grid(True, linestyle='--', alpha=0.6)
-axes_fig_sig_graph.set_title("Průběh vygenerovaného signálu v 1 sekundě", fontsize=10)
+axes_fig_sig_graph.set_title("Průběh vygenerovaného signálu", fontsize=10)
 axes_fig_sig_graph.set_xlabel("Čas [s]")
 axes_fig_sig_graph.set_ylabel("Amplituda [V]")
 # 4. Propojení Matplotlibu s Tkinterem
