@@ -19,6 +19,7 @@ python3 -m venv DFT_FFT_venv
 ```
 
 Přepnutí do virtuálního prostředí:
+
 (linux/macOS)
 ```bash
 source DFT_FFT_venv/bin/activate
