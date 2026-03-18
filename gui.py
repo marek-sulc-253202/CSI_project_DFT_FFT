@@ -1,10 +1,16 @@
+# Knihovny pro měření statistik
+import time
+import tracemalloc
+# Knihovny pro GUI
 import tkinter as tk
 from tkinter import ttk
-
+# Knihovny pro grafy
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+# Knihovny pro výpočet DFT/FFT
+import numpy as np
 from core import sig_gen
+from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calculate_fft_libs
 
 
 
@@ -15,6 +21,7 @@ from core import sig_gen
 root = tk.Tk()
 root.title("Fourierova Transformace — Dashboard")
 root.geometry("1500x750")
+root.resizable(False, False)
 
 
 
@@ -58,9 +65,219 @@ def signal_print():
     # Vykreslení grafu
     canvas_sig_graph.draw_idle()
 
+    return X
+
+def stats_print(X):
+    X_complex = [complex(val, 0) for val in X]
+
+    dft_traces = []
+    fft_traces = []
+
+    # --- DFT (no libs) ---
+    if var_dft_nolib.get():
+        tracemalloc.start()
+        start = time.time()
+
+        X_dft = calculate_dft(X_complex)
+
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+
+        lbl_dft_time_nolib.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_dft_mem_nolib.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_dft_comp_nolib.config(text="O(N²)", foreground="#000000")
+
+        mag_dft = [abs(v) for v in X_dft]
+        dft_traces.append((f"DFT", mag_dft, {'color':'#2ca02c','linestyle':'-'}))
+    else:
+        lbl_dft_time_nolib.config(foreground="#888888")
+        lbl_dft_mem_nolib.config(foreground="#888888")
+        lbl_dft_comp_nolib.config(foreground="#888888")
+
+    # --- FFT (no libs) ---
+    if var_fft_nolib.get():
+        tracemalloc.start()
+        start = time.time()
+
+        X_fft = calculate_fft(X_complex)
+
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+
+        lbl_fft_time_nolib.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_fft_mem_nolib.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_fft_comp_nolib.config(text="O(N log N)", foreground="#000000")
+
+        mag_fft = [abs(v) for v in X_fft]
+        fft_traces.append((f"FFT", mag_fft, {'color':'#ff7f0e','linestyle':'-'}))
+    else:
+        lbl_fft_time_nolib.config(foreground="#888888")
+        lbl_fft_mem_nolib.config(foreground="#888888")
+        lbl_fft_comp_nolib.config(foreground="#888888")
+
+    # --- DFT (math/cmath libs) ---
+    if var_dft_lib.get():
+        tracemalloc.start()
+        start = time.time()
+
+        X_dft_lib = calculate_dft_libs(X_complex)
+
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+
+        lbl_dft_time_lib.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_dft_mem_lib.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_dft_comp_lib.config(text="O(N²)", foreground="#000000")
+        
+
+        mag_dft_lib = [abs(v) for v in X_dft_lib]
+        dft_traces.append((f"DFT (math/cmath)", mag_dft_lib, {'color':'#2ca02c','linestyle':'--'}))
+    else:
+        lbl_dft_time_lib.config(foreground="#888888")
+        lbl_dft_mem_lib.config(foreground="#888888")
+        lbl_dft_comp_lib.config(foreground="#888888")
+
+    # --- FFT (math/cmath libs) ---
+    if var_fft_lib.get():
+        tracemalloc.start()
+        start = time.time()
+
+        X_fft_lib = calculate_fft_libs(X_complex)
+
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+
+        lbl_fft_time_lib.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_fft_mem_lib.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_fft_comp_lib.config(text="O(N log N)", foreground="#000000")
+
+        mag_fft_lib = [abs(v) for v in X_fft_lib]
+        fft_traces.append((f"FFT (math/cmath)", mag_fft_lib, {'color':'#ff7f0e','linestyle':'--'}))
+    else:
+        lbl_fft_time_lib.config(foreground="#888888")
+        lbl_fft_mem_lib.config(foreground="#888888")
+        lbl_fft_comp_lib.config(foreground="#888888")
+
+    # --- FFT (numpy) ---
+    if var_fft_numpy.get():
+        tracemalloc.start()
+        start = time.time()
+
+        X_fft_numpy = np.fft.fft(X)
+
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+
+        lbl_fft_time_numpy.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_fft_mem_numpy.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_fft_comp_numpy.config(text="O(N log N)", foreground="#000000")
+
+        mag_fft_numpy = [abs(v) for v in X_fft_numpy]
+        fft_traces.append((f"FFT (numpy)", mag_fft_numpy, {'color':'#1f77b4','linestyle':'-.'}))
+    else:
+        lbl_fft_time_numpy.config(foreground="#888888")
+        lbl_fft_mem_numpy.config(foreground="#888888")
+        lbl_fft_comp_numpy.config(foreground="#888888")
+
+    return dft_traces, fft_traces
+
+def spectrum_print(X, dft_traces, fft_traces):
+    N = len(X)
+    T = 1.0
+    fs = N / T
+    half = N // 2
+    freqs = [k * fs / N for k in range(half)]
+    
+    axes_fig_dft_spectrum.clear()
+    axes_fig_fft_spectrum.clear()
+    if dft_traces:  # Provede se, jen pokud je zaškrtlá aspoň jedna DFT metoda
+        amps_dft = []
+        for k in range(half):
+            mag = dft_traces[0][1][k]
+            if k == 0:
+                amps_dft.append(mag / N)
+            else:
+                amps_dft.append(2 * mag / N)
+
+        # Vykreslení (zelená barva C2 pro DFT)
+        axes_fig_dft_spectrum.stem(freqs, amps_dft, linefmt='C2-', markerfmt='C2o', basefmt='k-')
+        
+        # Chytré oříznutí osy X (najde max frekvenci s amplitudou > 0.01 V)
+        act_f = [f for f, a in zip(freqs, amps_dft) if a > 0.01]
+        max_f = max(act_f) * 1.1 if act_f else 10
+        axes_fig_dft_spectrum.set_xlim(0, max_f)
+        
+        max_amp = max(amps_dft) if amps_dft else 1
+        axes_fig_dft_spectrum.set_ylim(0, max_amp * 1.2)
+    else:
+        # Výchozí limit, když není nic zaškrtnuto
+        axes_fig_dft_spectrum.set_xlim(0, 10)
+        axes_fig_dft_spectrum.set_ylim(0, 1)
+        axes_fig_dft_spectrum.clear()
+
+
+    if fft_traces:  # Provede se, jen pokud je zaškrtlá aspoň jedna FFT metoda
+        amps_fft = []
+        for k in range(half):
+            mag = fft_traces[0][1][k]
+            if k == 0:
+                amps_fft.append(mag / N)
+            else:
+                amps_fft.append(2 * mag / N)
+
+        # Vykreslení (zelená barva C2 pro DFT)
+        axes_fig_fft_spectrum.stem(freqs, amps_fft, linefmt='C2-', markerfmt='C2o', basefmt='k-')
+        
+        # Chytré oříznutí osy X (najde max frekvenci s amplitudou > 0.01 V)
+        act_f = [f for f, a in zip(freqs, amps_fft) if a > 0.01]
+        max_f = max(act_f) * 1.1 if act_f else 10
+        axes_fig_fft_spectrum.set_xlim(0, max_f)
+        
+        max_amp = max(amps_fft) if amps_fft else 1
+        axes_fig_fft_spectrum.set_ylim(0, max_amp * 1.2)
+    else:
+        # Výchozí limit, když není nic zaškrtnuto
+        axes_fig_fft_spectrum.set_xlim(0, 10)
+        axes_fig_fft_spectrum.set_ylim(0, 1)
+        axes_fig_fft_spectrum.clear()
+
+    # Obnova vzhledu DFT grafu
+    axes_fig_dft_spectrum.grid(True, linestyle='--', alpha=0.6)
+    axes_fig_fft_spectrum.grid(True, linestyle='--', alpha=0.6)
+    axes_fig_dft_spectrum.set_title("DFT spektrum signálu", fontsize=10)
+    axes_fig_fft_spectrum.set_title("FFT spektrum signálu", fontsize=10)
+    axes_fig_dft_spectrum.set_xlabel("Frekvence [Hz]")
+    axes_fig_fft_spectrum.set_xlabel("Frekvence [Hz]")
+    axes_fig_dft_spectrum.set_ylabel("Amplituda [V]")
+    axes_fig_fft_spectrum.set_ylabel("Amplituda [V]")
+    canvas_dft_spectrum.draw_idle()
+    canvas_fft_spectrum.draw_idle()
+
 
 def button_fce():
-    signal_print()
+    X = signal_print()
+    dft_traces, fft_traces = stats_print(X)
+    spectrum_print(X, dft_traces, fft_traces)
 
 
 
@@ -87,7 +304,7 @@ sig_graph.pack(side="left", fill="both", expand=True)
 
 
 # --- 1.1. SEKCE: Frekvence a Amplitudy ---
-ttk.Label(conf_params, text="Frekvence a amplitudy složek signálu", font=("Arial", 9, "bold")).pack(side="top",pady=(5, 2))
+ttk.Label(conf_params, text="Frekvence a amplitudy složek signálu", font=("Arial", 10, "bold")).pack(side="top",pady=(5, 2))
 
 # První horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=2)
@@ -136,11 +353,11 @@ var_fft_nolib = tk.BooleanVar(value=False)
 var_dft_lib = tk.BooleanVar(value=False)
 var_fft_lib = tk.BooleanVar(value=False)
 var_fft_numpy = tk.BooleanVar(value=False)
-ttk.Checkbutton(impl_frame, text="DFT bez knihoven", variable=var_dft_nolib).grid(row=0, column=0, sticky="w", pady=2, padx=(0, 10))
-ttk.Checkbutton(impl_frame, text="FFT bez knihoven", variable=var_fft_nolib).grid(row=0, column=1, sticky="w", pady=2)
-ttk.Checkbutton(impl_frame, text="DFT s knihovnami", variable=var_dft_lib).grid(row=1, column=0, sticky="w", pady=2, padx=(0, 10))
-ttk.Checkbutton(impl_frame, text="FFT s knihovnami", variable=var_fft_lib).grid(row=1, column=1, sticky="w", pady=2)
-ttk.Checkbutton(impl_frame, text="FFT z numpy", variable=var_fft_numpy).grid(row=2, column=1, sticky="w", pady=2)
+ttk.Checkbutton(impl_frame, text="DFT", variable=var_dft_nolib).grid(row=0, column=0, sticky="w", pady=2, padx=(0, 10))
+ttk.Checkbutton(impl_frame, text="FFT", variable=var_fft_nolib).grid(row=0, column=1, sticky="w", pady=2)
+ttk.Checkbutton(impl_frame, text="DFT (math/cmath)", variable=var_dft_lib).grid(row=1, column=0, sticky="w", pady=2, padx=(0, 10))
+ttk.Checkbutton(impl_frame, text="FFT (math/cmath)", variable=var_fft_lib).grid(row=1, column=1, sticky="w", pady=2)
+ttk.Checkbutton(impl_frame, text="FFT (numpy)", variable=var_fft_numpy).grid(row=2, column=1, sticky="w", pady=2)
 
 
 
@@ -206,15 +423,15 @@ fft_spectrum.pack(side="left", fill="both", expand=True)
 
 
 # --- 2.1. SEKCE: DFT statistiky ---
-ttk.Label(dft_stats, text="DFT statistiky", font=("Arial", 9, "bold")).grid(row=0, column=0, columnspan=5, pady=(5, 2))
+ttk.Label(dft_stats, text="DFT statistiky", font=("Arial", 10, "bold")).grid(row=0, column=0, columnspan=5, pady=(5, 2))
 
 # --- Horizontální oddělovací čára ---
 ttk.Separator(dft_stats, orient="horizontal").grid(row=1, column=0, columnspan=5, sticky="ew", pady=(0, 5))
 
 # --- Hlavičky sloupců (Vlastnosti) ---
-ttk.Label(dft_stats, text="Čas").grid(row=2, column=2, padx=10, pady=2)
-ttk.Label(dft_stats, text="Paměťová\nnáročnost").grid(row=2, column=3, padx=10, pady=2)
-ttk.Label(dft_stats, text="Výpočetní\nnáročnost").grid(row=2, column=4, padx=10, pady=2)
+ttk.Label(dft_stats, text="Čas [ms]").grid(row=2, column=2, padx=10, pady=2)
+ttk.Label(dft_stats, text="Paměť [Kb]").grid(row=2, column=3, padx=10, pady=2)
+ttk.Label(dft_stats, text="Výpočet").grid(row=2, column=4, padx=10, pady=2)
 
 # --- Vertikální oddělovací čára ---
 separator_dft_vert = ttk.Separator(dft_stats, orient="vertical")
@@ -235,7 +452,7 @@ lbl_dft_comp_nolib.grid(row=3, column=4, pady=2)
 
 
 # --- 2. Řádek: s knihovnami ---
-ttk.Label(dft_stats, text="s knihovnami:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
+ttk.Label(dft_stats, text="s math/cmath:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
 
 lbl_dft_time_lib = ttk.Label(dft_stats, text="###")
 lbl_dft_time_lib.grid(row=4, column=2, pady=2)
@@ -256,9 +473,9 @@ ttk.Label(fft_stats, text="FFT statistiky", font=("Arial", 10, "bold")).grid(row
 ttk.Separator(fft_stats, orient="horizontal").grid(row=1, column=0, columnspan=5, sticky="ew", pady=(0, 5))
 
 # --- Hlavičky sloupců (Vlastnosti) ---
-ttk.Label(fft_stats, text="Čas").grid(row=2, column=2, padx=10, pady=2)
-ttk.Label(fft_stats, text="Paměťová\nnáročnost").grid(row=2, column=3, padx=10, pady=2)
-ttk.Label(fft_stats, text="Výpočetní\nnáročnost").grid(row=2, column=4, padx=10, pady=2)
+ttk.Label(fft_stats, text="Čas [ms]").grid(row=2, column=2, padx=10, pady=2)
+ttk.Label(fft_stats, text="Paměť [Kb]").grid(row=2, column=3, padx=10, pady=2)
+ttk.Label(fft_stats, text="Výpočet").grid(row=2, column=4, padx=10, pady=2)
 
 # --- Vertikální oddělovací čára ---
 # Zde je rowspan=4, protože FFT má 3 řádky dat (bez, s knih., numpy)
@@ -280,7 +497,7 @@ lbl_fft_comp_nolib.grid(row=3, column=4, pady=2)
 
 
 # --- 2. Řádek: s knihovnami ---
-ttk.Label(fft_stats, text="s knihovnami:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
+ttk.Label(fft_stats, text="s math/cmath:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
 
 lbl_fft_time_lib = ttk.Label(fft_stats, text="###")
 lbl_fft_time_lib.grid(row=4, column=2, pady=2)
