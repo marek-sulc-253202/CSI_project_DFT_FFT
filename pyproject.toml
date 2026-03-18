@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csi_dft_fft_projekt"
+version = "1.0.0"
+description = "Nástroj pro výpočet a vizualizaci DFT/FFT signálů"
+authors = [
+    {name = "Marek šulc ID:253202"}
+]
+dependencies = [
+    "numpy",
+    "matplotlib"
+]
