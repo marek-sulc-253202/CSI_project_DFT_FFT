@@ -43,7 +43,7 @@ def signal_print():
             except ValueError:
                 continue
 
-    # 1. Tady zavoláme TVOJI funkci a získáme jen to pole x
+    # Zavolání funkce sig_gen
     X, t = sig_gen(F_values, A_values)
     N = len(X)
     T = [n / N for n in range(N)]
