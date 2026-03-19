@@ -17,7 +17,7 @@ from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calcula
 
 
 
-# Deklarace Hlavního okna
+# Deklarace Hlavního okna a paramterů (titulek, velikost a zákaz změny velikosti)
 root = tk.Tk()
 root.title("Fourierova Transformace — Dashboard")
 root.geometry("1500x750")
@@ -366,6 +366,7 @@ ttk.Checkbutton(impl_frame, text="FFT (numpy)", variable=var_fft_numpy).grid(row
 # Třetí horizontální čára
 ttk.Separator(conf_params, orient="horizontal").pack(fill="x", pady=(5, 10))
 
+# Tlačítko pro spuštění generování signálu a zaškrtnutých inplementací
 btn_gen = ttk.Button(conf_params, text="VYGENEROVAT SIGNÁL", command=button_fce, style="TButton")
 btn_gen.pack(pady=(0, 10), ipady=2)
 
@@ -375,7 +376,7 @@ fig_sig_graph = Figure(figsize=(6, 3), dpi=100)
 fig_sig_graph.subplots_adjust(left=0.08, right=0.98, top=0.9, bottom=0.15)
 # Přidání os
 axes_fig_sig_graph = fig_sig_graph.add_subplot(111)
-# 3. Nastavení "prázdného" vzhledu (zatím bez dat)
+# 3. Nastavení "prázdného" vzhledu (bez dat)
 axes_fig_sig_graph.set_xlim(0, 1)
 axes_fig_sig_graph.set_ylim(-10, 10)
 axes_fig_sig_graph.grid(True, linestyle='--', alpha=0.6)
@@ -425,20 +426,20 @@ fft_spectrum.pack(side="left", fill="both", expand=True)
 # --- 2.1. SEKCE: DFT statistiky ---
 ttk.Label(dft_stats, text="DFT statistiky", font=("Arial", 10, "bold")).grid(row=0, column=0, columnspan=5, pady=(5, 2))
 
-# --- Horizontální oddělovací čára ---
+# Horizontální oddělovací čára
 ttk.Separator(dft_stats, orient="horizontal").grid(row=1, column=0, columnspan=5, sticky="ew", pady=(0, 5))
 
-# --- Hlavičky sloupců (Vlastnosti) ---
+# Hlavičky sloupců
 ttk.Label(dft_stats, text="Čas [ms]").grid(row=2, column=2, padx=10, pady=2)
 ttk.Label(dft_stats, text="Paměť [Kb]").grid(row=2, column=3, padx=10, pady=2)
 ttk.Label(dft_stats, text="Výpočet").grid(row=2, column=4, padx=10, pady=2)
 
-# --- Vertikální oddělovací čára ---
+# Vertikální oddělovací čára
 separator_dft_vert = ttk.Separator(dft_stats, orient="vertical")
 separator_dft_vert.grid(row=2, column=1, rowspan=3, sticky="ns", padx=5)
 
 
-# --- 1. Řádek: bez knihoven ---
+# 1. Řádek: bez knihoven
 ttk.Label(dft_stats, text="bez knihoven:").grid(row=3, column=0, sticky="e", padx=5, pady=2)
 
 lbl_dft_time_nolib = ttk.Label(dft_stats, text="###")
@@ -451,7 +452,7 @@ lbl_dft_comp_nolib = ttk.Label(dft_stats, text="###")
 lbl_dft_comp_nolib.grid(row=3, column=4, pady=2)
 
 
-# --- 2. Řádek: s knihovnami ---
+# 2. Řádek: s knihovnami
 ttk.Label(dft_stats, text="s math/cmath:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
 
 lbl_dft_time_lib = ttk.Label(dft_stats, text="###")
@@ -469,21 +470,20 @@ lbl_dft_comp_lib.grid(row=4, column=4, pady=2)
 # --- 2.2. SEKCE: FFT statistiky ---
 ttk.Label(fft_stats, text="FFT statistiky", font=("Arial", 10, "bold")).grid(row=0, column=0, columnspan=5, pady=(25, 5))
 
-# --- Horizontální oddělovací čára ---
+# Horizontální oddělovací čára
 ttk.Separator(fft_stats, orient="horizontal").grid(row=1, column=0, columnspan=5, sticky="ew", pady=(0, 5))
 
-# --- Hlavičky sloupců (Vlastnosti) ---
+# Hlavičky sloupců
 ttk.Label(fft_stats, text="Čas [ms]").grid(row=2, column=2, padx=10, pady=2)
 ttk.Label(fft_stats, text="Paměť [Kb]").grid(row=2, column=3, padx=10, pady=2)
 ttk.Label(fft_stats, text="Výpočet").grid(row=2, column=4, padx=10, pady=2)
 
-# --- Vertikální oddělovací čára ---
-# Zde je rowspan=4, protože FFT má 3 řádky dat (bez, s knih., numpy)
+# Vertikální oddělovací čára
 separator_fft_vert = ttk.Separator(fft_stats, orient="vertical")
 separator_fft_vert.grid(row=2, column=1, rowspan=4, sticky="ns", padx=5)
 
 
-# --- 1. Řádek: bez knihoven ---
+# 1. Řádek: bez knihoven
 ttk.Label(fft_stats, text="bez knihoven:").grid(row=3, column=0, sticky="e", padx=5, pady=2)
 
 lbl_fft_time_nolib = ttk.Label(fft_stats, text="###")
@@ -496,7 +496,7 @@ lbl_fft_comp_nolib = ttk.Label(fft_stats, text="###")
 lbl_fft_comp_nolib.grid(row=3, column=4, pady=2)
 
 
-# --- 2. Řádek: s knihovnami ---
+# 2. Řádek: s knihovnami
 ttk.Label(fft_stats, text="s math/cmath:").grid(row=4, column=0, sticky="e", padx=5, pady=2)
 
 lbl_fft_time_lib = ttk.Label(fft_stats, text="###")
@@ -509,7 +509,7 @@ lbl_fft_comp_lib = ttk.Label(fft_stats, text="###")
 lbl_fft_comp_lib.grid(row=4, column=4, pady=2)
 
 
-# --- 3. Řádek: z numpy ---
+# 3. Řádek: z numpy
 ttk.Label(fft_stats, text="z numpy:").grid(row=5, column=0, sticky="e", padx=5, pady=2)
 
 lbl_fft_time_numpy = ttk.Label(fft_stats, text="###")
@@ -529,7 +529,7 @@ fig_dft_spectrum = Figure(figsize=(4, 3), dpi=100, layout="tight")
 fig_dft_spectrum.subplots_adjust(left=0.08, right=0.98, top=0.9, bottom=0.15)
 # Přidání os
 axes_fig_dft_spectrum = fig_dft_spectrum.add_subplot(111)
-# 3. Nastavení "prázdného" vzhledu (zatím bez dat)
+# 3. Nastavení "prázdného" vzhledu (bez dat)
 axes_fig_dft_spectrum.set_xlim(0, 1)
 axes_fig_dft_spectrum.set_ylim(0, 1)
 axes_fig_dft_spectrum.grid(True, linestyle='--', alpha=0.6)
@@ -547,7 +547,7 @@ fig_fft_spectrum = Figure(figsize=(4, 3), dpi=100, layout="tight")
 fig_fft_spectrum.subplots_adjust(left=0.08, right=0.98, top=0.9, bottom=0.15)
 # Přidání os
 axes_fig_fft_spectrum = fig_fft_spectrum.add_subplot(111)
-# 3. Nastavení "prázdného" vzhledu (zatím bez dat)
+# 3. Nastavení "prázdného" vzhledu (bez dat)
 axes_fig_fft_spectrum.set_xlim(0, 1)
 axes_fig_fft_spectrum.set_ylim(0, 1)
 axes_fig_fft_spectrum.grid(True, linestyle='--', alpha=0.6)
