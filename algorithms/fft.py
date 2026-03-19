@@ -24,10 +24,11 @@ def calculate_fft(x):
     # Inicializace výsledného pole komplexních čísel o délce N
     X = [0.0j] * N
     first_half = N // 2
-    # Samotný výpočet sekvence vzorků
+    # Samotný výpočet sekvence vzorků (skládání sudých a lichých částí zpět dohromady)
     for k in range(first_half):
+        # Výpočet rotačního faktoru pomocí fce z mathfce
         factor = mathfce.complex_exponential(-2 * mathfce.pi * k / N)
-        X[k] = even[k] + factor * odd[k]
-        X[k + first_half] = even[k] - factor * odd[k]
+        X[k] = even[k] + factor * odd[k] # výpočet pro první polovinu
+        X[k + first_half] = even[k] - factor * odd[k] # výpočet pro druhou polovinu (díky symetrii stačí + -> -)
     
     return X
