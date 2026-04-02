@@ -17,6 +17,63 @@ from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calcula
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+import ctypes
+import sys
+import os
+
+
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+if sys.platform.startswith("win"):
+    lib_name = "dft_c.dll"
+elif sys.platform.startswith("darwin"):
+    lib_name = "dft_c.dylib"
+else:
+    lib_name = "dft_c.so"
+
+lib_path = os.path.join(base_dir, "algorithms", lib_name)
+c_lib = ctypes.CDLL(lib_path)
+
+c_lib.calculated_dft.argtypes = [
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.POINTER(ctypes.c_double),
+    ctypes.POINTER(ctypes.c_double)
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Deklarace Hlavního okna a paramterů (titulek, velikost a zákaz změny velikosti)
 root = tk.Tk()
 root.title("Fourierova Transformace — Dashboard")
@@ -173,6 +230,83 @@ def stats_print(X):
         lbl_fft_time_lib.config(foreground="#888888")
         lbl_fft_mem_lib.config(foreground="#888888")
         lbl_fft_comp_lib.config(foreground="#888888")
+
+
+
+
+
+
+
+
+
+
+    if var_dft_c.get():
+        tracemalloc.start()
+        start = time.time()
+
+        N = len(X)
+    
+        # Rozsekneme pythonní komplexní čísla na dvě obyčejná pole
+        in_r = [val.real for val in X]
+        in_i = [val.imag for val in X]
+        
+        # Připravíme si "šablonu" pro C-pole o velikosti N
+        CArray = ctypes.c_double * N
+        
+        # Vytvoříme vstupní C-pole a rovnou je naplníme daty z Pythonu
+        c_in_r = CArray(*in_r)
+        c_in_i = CArray(*in_i)
+        
+        # Vytvoříme prázdná C-pole pro výsledek. 
+        # Nekopírujeme tam žádné nuly z Pythonu, o to se postará memset v C!
+        c_out_r = CArray()
+        c_out_i = CArray()
+        
+        # TADY SE VOLÁ CÉČKO! (Předáme velikost a všechny čtyři ukazatele na paměť)
+        c_lib.calculated_dft(N, c_in_r, c_in_i, c_out_r, c_out_i)
+        
+        # Složíme výsledek zpět
+        X_dft_c = [complex(c_out_r[k], c_out_i[k]) for k in range(N)]
+        
+        # Zastavení měření a výpočet
+        max_time = time.time() - start
+        mem, max_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        max_time_ms = max_time * 1000
+        max_mem_kb = max_mem / 1024.0
+        
+        # Zápis do GUI labelů
+        lbl_dft_time_c.config(text=f"{max_time_ms:.2f}", foreground="#000000")
+        lbl_dft_mem_c.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
+        lbl_dft_comp_c.config(text="O(N²)", foreground="#000000")
+
+        # Přidání do stop pro graf (dáme tomu např. červenou barvu)
+        mag_dft_c = [abs(v) for v in X_dft_c]
+        dft_traces.append((f"DFT (C)", mag_dft_c, {'color':'#d62728','linestyle':':'}))
+    else:
+        # Vypnutí labelů, když není zaškrtnuto
+        lbl_dft_time_c.config(foreground="#888888")
+        lbl_dft_mem_c.config(foreground="#888888")
+        lbl_dft_comp_c.config(foreground="#888888")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # --- FFT (numpy) ---
     if var_fft_numpy.get():
@@ -352,11 +486,13 @@ var_dft_nolib = tk.BooleanVar(value=False)
 var_fft_nolib = tk.BooleanVar(value=False)
 var_dft_lib = tk.BooleanVar(value=False)
 var_fft_lib = tk.BooleanVar(value=False)
+var_dft_c = tk.BooleanVar(value=False)
 var_fft_numpy = tk.BooleanVar(value=False)
 ttk.Checkbutton(impl_frame, text="DFT", variable=var_dft_nolib).grid(row=0, column=0, sticky="w", pady=2, padx=(0, 10))
 ttk.Checkbutton(impl_frame, text="FFT", variable=var_fft_nolib).grid(row=0, column=1, sticky="w", pady=2)
 ttk.Checkbutton(impl_frame, text="DFT (math/cmath)", variable=var_dft_lib).grid(row=1, column=0, sticky="w", pady=2, padx=(0, 10))
 ttk.Checkbutton(impl_frame, text="FFT (math/cmath)", variable=var_fft_lib).grid(row=1, column=1, sticky="w", pady=2)
+ttk.Checkbutton(impl_frame, text="DFT (C)", variable=var_dft_c).grid(row=2, column=0, sticky="w", pady=2, padx=(0, 10))
 ttk.Checkbutton(impl_frame, text="FFT (numpy)", variable=var_fft_numpy).grid(row=2, column=1, sticky="w", pady=2)
 
 
@@ -463,6 +599,19 @@ lbl_dft_mem_lib.grid(row=4, column=3, pady=2)
 
 lbl_dft_comp_lib = ttk.Label(dft_stats, text="###")
 lbl_dft_comp_lib.grid(row=4, column=4, pady=2)
+
+
+# 2. Řádek: C
+ttk.Label(dft_stats, text="implement. C:").grid(row=5, column=0, sticky="e", padx=5, pady=2)
+
+lbl_dft_time_c = ttk.Label(dft_stats, text="###")
+lbl_dft_time_c.grid(row=5, column=2, pady=2)
+
+lbl_dft_mem_c = ttk.Label(dft_stats, text="###")
+lbl_dft_mem_c.grid(row=5, column=3, pady=2)
+
+lbl_dft_comp_c = ttk.Label(dft_stats, text="###")
+lbl_dft_comp_c.grid(row=5, column=4, pady=2)
 
 
 
