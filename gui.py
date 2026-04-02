@@ -15,22 +15,10 @@ from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calcula
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import ctypes
 import sys
 import os
+
 
 
 
@@ -46,30 +34,13 @@ else:
 lib_path = os.path.join(base_dir, "algorithms", lib_name)
 c_lib = ctypes.CDLL(lib_path)
 
-c_lib.calculated_dft.argtypes = [
+c_lib.calculate_dft_c.argtypes = [
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_double),
     ctypes.POINTER(ctypes.c_double),
     ctypes.POINTER(ctypes.c_double),
     ctypes.POINTER(ctypes.c_double)
 ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -231,15 +202,7 @@ def stats_print(X):
         lbl_fft_mem_lib.config(foreground="#888888")
         lbl_fft_comp_lib.config(foreground="#888888")
 
-
-
-
-
-
-
-
-
-
+    # --- DFT (Implement. C) ---
     if var_dft_c.get():
         tracemalloc.start()
         start = time.time()
@@ -263,7 +226,7 @@ def stats_print(X):
         c_out_i = CArray()
         
         # TADY SE VOLÁ CÉČKO! (Předáme velikost a všechny čtyři ukazatele na paměť)
-        c_lib.calculated_dft(N, c_in_r, c_in_i, c_out_r, c_out_i)
+        c_lib.calculate_dft_c(N, c_in_r, c_in_i, c_out_r, c_out_i)
         
         # Složíme výsledek zpět
         X_dft_c = [complex(c_out_r[k], c_out_i[k]) for k in range(N)]
@@ -283,30 +246,12 @@ def stats_print(X):
 
         # Přidání do stop pro graf (dáme tomu např. červenou barvu)
         mag_dft_c = [abs(v) for v in X_dft_c]
-        dft_traces.append((f"DFT (C)", mag_dft_c, {'color':'#d62728','linestyle':':'}))
+        dft_traces.append((f"DFT (C)", mag_dft_c, {'color':'#2ca02c','linestyle':':'}))
     else:
         # Vypnutí labelů, když není zaškrtnuto
         lbl_dft_time_c.config(foreground="#888888")
         lbl_dft_mem_c.config(foreground="#888888")
         lbl_dft_comp_c.config(foreground="#888888")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     # --- FFT (numpy) ---
     if var_fft_numpy.get():
@@ -327,7 +272,7 @@ def stats_print(X):
         lbl_fft_comp_numpy.config(text="O(N log N)", foreground="#000000")
 
         mag_fft_numpy = [abs(v) for v in X_fft_numpy]
-        fft_traces.append((f"FFT (numpy)", mag_fft_numpy, {'color':'#1f77b4','linestyle':'-.'}))
+        fft_traces.append((f"FFT (numpy)", mag_fft_numpy, {'color':'#ff7f0e','linestyle':'-.'}))
     else:
         lbl_fft_time_numpy.config(foreground="#888888")
         lbl_fft_mem_numpy.config(foreground="#888888")

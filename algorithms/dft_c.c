@@ -3,7 +3,7 @@
 
 #define PI 3.14159265358979323846
 
-void calculated_dft(int N, double *in_real, double *in_imag, double *out_real, double *out_imag) {
+void calculate_dft_c(int N, double *in_real, double *in_imag, double *out_real, double *out_imag) {
 
     memset(out_real, 0, N * sizeof(double));
     memset(out_imag, 0, N * sizeof(double));
