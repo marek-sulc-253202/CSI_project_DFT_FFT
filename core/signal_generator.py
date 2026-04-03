@@ -9,7 +9,7 @@ def sig_gen(F, A): # argumenty jsou nastavené frekvence a amplitudy
     # Perioda = 1 s
     T = 1.0
     # Výpočet adekvátní vzorkovací frekvence a počtu vzorků
-    fs = 50 * max(F) if max(F) > 0 else 1000
+    fs = max(20 * max(F), 1000)
     N = int(fs * T)
 
     # Zaokrouhlit N na další mocninu dvou, kvůli FFT (rozděluje sekvenci na poloviny)
