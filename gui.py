@@ -1,4 +1,4 @@
-# Knihovny pro měření statistik
+# Knihovny pro měření statistik (čas a paměť)
 import time
 import tracemalloc
 # Knihovny pro GUI
@@ -7,33 +7,36 @@ from tkinter import ttk
 # Knihovny pro grafy
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# Knihovny pro výpočet DFT/FFT
+# Knihovny pro výpočet DFT/FFT a vlastní moduly
 import numpy as np
 from core import sig_gen
 from algorithms import calculate_dft, calculate_fft, calculate_dft_libs, calculate_fft_libs
 
 
 
-
+# Knihovny pro propojení s implementaci v C
 import ctypes
 import sys
 import os
 
 
 
-
+# --- Načtení Cčekové knihovny na základě operačního systému ---
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Vybrání správné koncovky knihovny na základě OS
 if sys.platform.startswith("win"):
-    lib_name = "dft_c.dll"
+    lib_name = "dft_c.dll"  # Win
 elif sys.platform.startswith("darwin"):
-    lib_name = "dft_c.dylib"
+    lib_name = "dft_c.dylib"    # macOS
 else:
-    lib_name = "dft_c.so"
+    lib_name = "dft_c.so"   # Linux
 
 lib_path = os.path.join(base_dir, "algorithms", lib_name)
 c_lib = ctypes.CDLL(lib_path)
 
+# Nastavení datových typů pro Cíčkovou fce
+# Bere int (N) a 4 pointry na pole doublů
 c_lib.calculate_dft_c.argtypes = [
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_double),
@@ -61,15 +64,18 @@ def signal_print():
     # Načtení frekvencí a amplitud ze vstupů do polí
     F_values = []                
     A_values = []
+
+    # Projití všech vstupů a spojení pomocí zip
     for f, a in zip(input_F, input_A):
         text_f = f.get().strip()
         text_a = a.get().strip()
+        # Pokud nejsou prázdná, tak se zkusí převést na float
         if text_f and text_a:
             try:
                 F_values.append(float(text_f))
                 A_values.append(float(text_a))
             except ValueError:
-                continue
+                continue    # Ignorování vstupu při zadání nesprávného (písmena nebo znaky)
 
     # Zavolání funkce sig_gen
     X, t = sig_gen(F_values, A_values)
@@ -96,32 +102,39 @@ def signal_print():
     return X
 
 def stats_print(X):
+    # Převod signálu do komplexní roviny
     X_complex = [complex(val, 0) for val in X]
 
+    # Pole pro uložení výsledků.
     dft_traces = []
     fft_traces = []
 
     # --- DFT (no libs) ---
     if var_dft_nolib.get():
-        tracemalloc.start()
-        start = time.time()
+        tracemalloc.start() # Začátek sledování alokované paměti
+        start = time.time() # Začátek měření času
 
         X_dft = calculate_dft(X_complex)
 
-        max_time = time.time() - start
-        mem, max_mem = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+        max_time = time.time() - start  # Konec měření času
+        mem, max_mem = tracemalloc.get_traced_memory()  # Uložení sledované paměti
+        tracemalloc.stop()  # Konec sledování alokované paměti
 
+        # Převod na milisekundy a kilobajty
         max_time_ms = max_time * 1000
         max_mem_kb = max_mem / 1024.0
 
+        # Výpis do GUI
         lbl_dft_time_nolib.config(text=f"{max_time_ms:.2f}", foreground="#000000")
         lbl_dft_mem_nolib.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
         lbl_dft_comp_nolib.config(text="O(N²)", foreground="#000000")
 
+        # Získání abs hodnot (amplitudy) a uložení křivky
         mag_dft = [abs(v) for v in X_dft]
+        # To 'color' a 'linestyle' je zde zbytečný ale už jsem to tu nechal (pak se to přepisuje)
         dft_traces.append((f"DFT", mag_dft, {'color':'#2ca02c','linestyle':'-'}))
     else:
+        # Pokud není zašrktnuto -> zašednutí textu
         lbl_dft_time_nolib.config(foreground="#888888")
         lbl_dft_mem_nolib.config(foreground="#888888")
         lbl_dft_comp_nolib.config(foreground="#888888")
@@ -209,29 +222,28 @@ def stats_print(X):
 
         N = len(X)
     
-        # Rozsekneme pythonní komplexní čísla na dvě obyčejná pole
+        # Rozseknutí python komplex čísla na dvě obyčejná pole
         in_r = [val.real for val in X]
         in_i = [val.imag for val in X]
         
-        # Připravíme si "šablonu" pro C-pole o velikosti N
+        # Příprava "šablony" pro C-pole o velikosti N
         CArray = ctypes.c_double * N
         
-        # Vytvoříme vstupní C-pole a rovnou je naplníme daty z Pythonu
+        # Vytvoření vstupního C-pole a naplníme dat z Pythonu
         c_in_r = CArray(*in_r)
         c_in_i = CArray(*in_i)
         
-        # Vytvoříme prázdná C-pole pro výsledek. 
-        # Nekopírujeme tam žádné nuly z Pythonu, o to se postará memset v C!
+        # Vytvoření prázdného C-pole pro výsledek. 
         c_out_r = CArray()
         c_out_i = CArray()
         
-        # TADY SE VOLÁ CÉČKO! (Předáme velikost a všechny čtyři ukazatele na paměť)
+        # Volání C funkce, nic nevrací do žádné proměnné, protože v argumentu
+        # má pointery na výše definována pole a pomocí nich do těch polí uloží vypočtené hodnoty.
         c_lib.calculate_dft_c(N, c_in_r, c_in_i, c_out_r, c_out_i)
         
-        # Složíme výsledek zpět
+        # Složíme výsledek zpět z C do komplexní rovniy python čísel
         X_dft_c = [complex(c_out_r[k], c_out_i[k]) for k in range(N)]
         
-        # Zastavení měření a výpočet
         max_time = time.time() - start
         mem, max_mem = tracemalloc.get_traced_memory()
         tracemalloc.stop()
@@ -239,12 +251,10 @@ def stats_print(X):
         max_time_ms = max_time * 1000
         max_mem_kb = max_mem / 1024.0
         
-        # Zápis do GUI labelů
         lbl_dft_time_c.config(text=f"{max_time_ms:.2f}", foreground="#000000")
         lbl_dft_mem_c.config(text=f"{max_mem_kb:.2f}", foreground="#000000")
         lbl_dft_comp_c.config(text="O(N²)", foreground="#000000")
 
-        # Přidání do stop pro graf (dáme tomu např. červenou barvu)
         mag_dft_c = [abs(v) for v in X_dft_c]
         dft_traces.append((f"DFT (C)", mag_dft_c, {'color':'#2ca02c','linestyle':':'}))
     else:
@@ -281,18 +291,24 @@ def stats_print(X):
     return dft_traces, fft_traces
 
 def spectrum_print(X, dft_traces, fft_traces):
+    # Příprava osy X (fekvence) pro spektrum
     N = len(X)
-    T = 1.0
+    T = 1.0 # Předpokládaná délka záznamu je 1 sekunda.
     fs = N / T
-    half = N // 2
+    half = N // 2   # Zobrazení pouze první poloviny spektra
+
+    # Vygenerování pole reálných frekvencí (0 až fs/2)
     freqs = [k * fs / N for k in range(half)]
     
     axes_fig_dft_spectrum.clear()
     axes_fig_fft_spectrum.clear()
+
+    # -- Vykreslení DFT spekter ---
     if dft_traces:  # Provede se, jen pokud je zaškrtlá aspoň jedna DFT metoda
         amps_dft = []
         for k in range(half):
             mag = dft_traces[0][1][k]
+            # Normalizace amplitudy - stejnosměrná složka se dělí N, ostatní 2/N
             if k == 0:
                 amps_dft.append(mag / N)
             else:
@@ -315,6 +331,7 @@ def spectrum_print(X, dft_traces, fft_traces):
         axes_fig_dft_spectrum.clear()
 
 
+    # --- Vykreslení FFT spekter ---
     if fft_traces:  # Provede se, jen pokud je zaškrtlá aspoň jedna FFT metoda
         amps_fft = []
         for k in range(half):
@@ -324,7 +341,7 @@ def spectrum_print(X, dft_traces, fft_traces):
             else:
                 amps_fft.append(2 * mag / N)
 
-        # Vykreslení (zelená barva C2 pro DFT)
+        # Vykreslení (zelená barva C2 pro FFT)
         axes_fig_fft_spectrum.stem(freqs, amps_fft, linefmt='C2-', markerfmt='C2o', basefmt='k-')
         
         # Chytré oříznutí osy X (najde max frekvenci s amplitudou > 0.01 V)
@@ -353,6 +370,7 @@ def spectrum_print(X, dft_traces, fft_traces):
     canvas_fft_spectrum.draw_idle()
 
 
+# Funkce která se spustí při kliknutí na tlačítko.
 def button_fce():
     X = signal_print()
     dft_traces, fft_traces = stats_print(X)

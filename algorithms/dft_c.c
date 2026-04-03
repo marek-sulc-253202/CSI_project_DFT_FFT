@@ -8,8 +8,7 @@
 // Funkce pro výpočet DFT.
 void calculate_dft_c(int N, double *in_real, double *in_imag, double *out_real, double *out_imag) {
 
-    // Tohle by se nemuselo dělat ale je to tu pro ověření, že pole jsou polná nul.
-    // V podstatě to pro ty pole nastaví paměť pro N čísel typu double a všechny jsou 0.
+    // Nastavení paměťi pro pole o velikosti N čísel typu dobule, která jsou všechny 0.
     memset(out_real, 0, N * sizeof(double));
     memset(out_imag, 0, N * sizeof(double));
 
